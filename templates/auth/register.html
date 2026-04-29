@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Create account – snickr{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
+
+    <div class="text-center mb-4">
+      <h1 class="fw-bold fs-2">
+        <i class="bi bi-lightning-charge-fill text-warning"></i> snickr
+      </h1>
+      <p class="text-muted">Create your account</p>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+
+          <div class="mb-3">
+            <label for="email" class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control" id="email" name="email"
+                   value="{{ email or '' }}" placeholder="you@example.com"
+                   autocomplete="email" autofocus required />
+          </div>
+
+          <div class="mb-3">
+            <label for="username" class="form-label fw-semibold">Username</label>
+            <input type="text" class="form-control" id="username" name="username"
+                   value="{{ username or '' }}" placeholder="cool_username"
+                   autocomplete="username" required />
+            <div class="form-text">At least 3 characters.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="nickname" class="form-label fw-semibold">
+              Display name <span class="text-muted fw-normal">(optional)</span>
+            </label>
+            <input type="text" class="form-control" id="nickname" name="nickname"
+                   value="{{ nickname or '' }}" placeholder="Alex Smith" />
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label fw-semibold">Password</label>
+            <input type="password" class="form-control" id="password" name="password"
+                   placeholder="••••••••" autocomplete="new-password" required />
+            <div class="form-text">At least 6 characters.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="confirm_password" class="form-label fw-semibold">Confirm password</label>
+            <input type="password" class="form-control" id="confirm_password"
+                   name="confirm_password" placeholder="••••••••"
+                   autocomplete="new-password" required />
+          </div>
+
+          <button type="submit" class="btn btn-success btn-lg w-100 fw-semibold">
+            <i class="bi bi-person-plus me-1"></i> Create account
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <p class="text-center mt-3 text-muted">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}" class="fw-semibold">Sign in</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

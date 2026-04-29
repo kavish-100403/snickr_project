@@ -1,0 +1,158 @@
+/* ============================================================
+   snickr – custom stylesheet (Bootstrap 5 companion)
+   ============================================================ */
+
+/* ── Root / theme ─────────────────────────────────────────── */
+:root {
+  --snickr-bg: #f0f2f5;
+  --snickr-card-radius: 12px;
+  --snickr-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+body {
+  background: var(--snickr-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ── Navbar ────────────────────────────────────────────────── */
+.navbar {
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.navbar-brand {
+  letter-spacing: -.5px;
+  font-size: 1.35rem;
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card {
+  border-radius: var(--snickr-card-radius);
+}
+
+/* ── Avatar circle (36px square, 8px radius, colored) ─────── */
+.avatar-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: .8rem;
+  flex-shrink: 0;
+  background: #0d6efd;
+}
+
+/* ── Workspace cards on dashboard ─────────────────────────── */
+.workspace-card {
+  transition: transform .18s ease, box-shadow .18s ease;
+  cursor: pointer;
+}
+.workspace-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
+}
+
+/* ── Channel type badges ───────────────────────────────────── */
+.channel-type-public  { background: #d1fae5; color: #065f46; }
+.channel-type-private { background: #fef3c7; color: #92400e; }
+.channel-type-direct  { background: #dbeafe; color: #1e40af; }
+.channel-type-public,
+.channel-type-private,
+.channel-type-direct {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* ── Channel list item hover ──────────────────────────────── */
+.channel-link { color: #1a1a2e; }
+.channel-link:hover { color: #0d6efd; }
+
+/* ── Channel detail – full-height chat layout ─────────────── */
+.channel-layout {
+  display: flex;
+  height: calc(100vh - 58px);   /* viewport minus navbar height */
+  overflow: hidden;
+}
+
+.channel-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.channel-main {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.channel-header {
+  flex-shrink: 0;
+  min-height: 60px;
+}
+
+.messages-area {
+  flex: 1;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.post-form {
+  flex-shrink: 0;
+}
+
+/* ── Message rows ─────────────────────────────────────────── */
+.message-row:hover {
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.message-body {
+  line-height: 1.55;
+  word-break: break-word;
+  font-size: .92rem;
+}
+
+/* ── Search result highlight strip ───────────────────────── */
+.search-excerpt {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  padding: 6px 10px;
+  border-radius: 0 6px 6px 0;
+  font-size: .9rem;
+  color: #374151;
+}
+
+/* ── Flash alerts ─────────────────────────────────────────── */
+.alert {
+  border-radius: 10px;
+  border: none;
+}
+
+/* ── Form controls ─────────────────────────────────────────── */
+.form-control:focus,
+.form-select:focus {
+  box-shadow: 0 0 0 3px rgba(13,110,253,.15);
+  border-color: #86b7fe;
+}
+
+/* ── Responsive: hide sidebar on small screens ─────────────── */
+@media (max-width: 991.98px) {
+  .channel-layout {
+    height: auto;
+    flex-direction: column;
+  }
+  .channel-sidebar {
+    display: none !important;
+  }
+  .messages-area {
+    height: 55vh;
+  }
+}

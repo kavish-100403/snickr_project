@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Create Workspace – snickr{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6 col-md-8">
+
+    <div class="d-flex align-items-center mb-4 gap-2">
+      <a href="{{ url_for('workspaces.dashboard') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h4 class="mb-0 fw-bold">Create a Workspace</h4>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('workspaces.create_workspace') }}" novalidate>
+
+          <div class="mb-3">
+            <label for="name" class="form-label fw-semibold">Workspace name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="name" name="name"
+                   value="{{ name or '' }}" placeholder="e.g. Engineering Team"
+                   autofocus required maxlength="150" />
+          </div>
+
+          <div class="mb-4">
+            <label for="description" class="form-label fw-semibold">
+              Description <span class="text-muted fw-normal">(optional)</span>
+            </label>
+            <textarea class="form-control" id="description" name="description"
+                      rows="3" placeholder="What is this workspace for?">{{ description or '' }}</textarea>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+              <i class="bi bi-building-add me-1"></i> Create Workspace
+            </button>
+            <a href="{{ url_for('workspaces.dashboard') }}" class="btn btn-outline-secondary">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="alert alert-light border mt-3 small">
+      <i class="bi bi-info-circle me-1 text-primary"></i>
+      You will automatically become a member, admin, and be placed in the
+      <strong>#general</strong> channel of the new workspace.
+    </div>
+
+  </div>
+</div>
+{% endblock %}

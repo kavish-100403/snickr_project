@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}#{{ channel.name }} – snickr{% endblock %}
+{% block container_class %}container-fluid py-0{% endblock %}
+
+{% block content %}
+<div class="channel-layout">
+
+  {# ── Left sidebar: back + channel info + members ── #}
+  <aside class="channel-sidebar d-none d-lg-flex flex-column bg-white border-end">
+
+    <div class="p-3 border-bottom">
+      <a href="{{ url_for('workspaces.workspace_detail', workspace_id=channel.workspace_id) }}"
+         class="btn btn-sm btn-outline-secondary w-100 mb-2">
+        <i class="bi bi-arrow-left me-1"></i> {{ channel.workspace_name }}
+      </a>
+    </div>
+
+    <div class="p-3 border-bottom">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        {% if channel.channel_type == 'public' %}
+        <i class="bi bi-hash text-success fs-5"></i>
+        {% elif channel.channel_type == 'private' %}
+        <i class="bi bi-lock-fill text-warning fs-5"></i>
+        {% else %}
+        <i class="bi bi-chat-dots-fill text-info fs-5"></i>
+        {% endif %}
+        <span class="fw-bold fs-5">{{ channel.name }}</span>
+      </div>
+      <span class="badge channel-type-{{ channel.channel_type }} small">{{ channel.channel_type }}</span>
+      <div class="text-muted small mt-1">Created by {{ channel.creator }}</div>
+    </div>
+
+    <div class="p-3 flex-grow-1 overflow-auto">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-semibold small text-uppercase text-muted" style="letter-spacing:.05em;">
+          Members ({{ members|length }})
+        </span>
+        {% if in_channel and channel.channel_type != 'direct' %}
+        <a href="{{ url_for('channels.invite_to_channel', channel_id=channel.channel_id) }}"
+           class="btn btn-link btn-sm p-0 text-primary" title="Invite">
+          <i class="bi bi-person-plus-fill"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% for m in members %}
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="avatar-sm flex-shrink-0" style="background:{{ m.username | avatar_color }}">
+          {{ (m.nickname or m.username)[0].upper() }}
+        </span>
+        <span class="small text-truncate">{{ m.nickname or m.username }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+  </aside>
+
+  {# ── Main: header + messages + post form ── #}
+  <main class="channel-main d-flex flex-column">
+
+    {# Header #}
+    <div class="channel-header border-bottom bg-white px-4 py-3 d-flex justify-content-between align-items-center flex-shrink-0">
+      <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('workspaces.workspace_detail', workspace_id=channel.workspace_id) }}"
+           class="btn btn-sm btn-outline-secondary d-lg-none me-1">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        {% if channel.channel_type == 'public' %}
+        <i class="bi bi-hash text-success fs-5"></i>
+        {% elif channel.channel_type == 'private' %}
+        <i class="bi bi-lock-fill text-warning fs-5"></i>
+        {% else %}
+        <i class="bi bi-chat-dots-fill text-info fs-5"></i>
+        {% endif %}
+        <span class="fw-bold fs-5">{{ channel.name }}</span>
+        <span class="text-muted small d-none d-sm-inline">
+          &middot; {{ members|length }} members
+        </span>
+      </div>
+      <div class="d-flex gap-2">
+        {% if not in_channel and channel.channel_type == 'public' %}
+        <form method="POST"
+              action="{{ url_for('channels.join_channel', channel_id=channel.channel_id) }}">
+          <button class="btn btn-success btn-sm" type="submit">
+            <i class="bi bi-plus-circle me-1"></i>Join
+          </button>
+        </form>
+        {% endif %}
+        {% if in_channel and channel.channel_type != 'direct' %}
+        <a href="{{ url_for('channels.invite_to_channel', channel_id=channel.channel_id) }}"
+           class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-person-plus me-1"></i>Invite
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Messages area #}
+    <div class="messages-area flex-grow-1 overflow-auto px-4 py-3" id="messages">
+      {% if messages %}
+        {% for msg in messages %}
+        <div class="message-row d-flex gap-3 mb-3">
+          <span class="avatar-sm flex-shrink-0" style="background:{{ msg.sender_username | avatar_color }}">
+            {{ (msg.sender_nickname or msg.sender_username)[0].upper() }}
+          </span>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-baseline gap-2 mb-1">
+              <span class="fw-semibold">{{ msg.sender_nickname or msg.sender_username }}</span>
+              <span class="text-muted" style="font-size:0.75rem;">
+                {{ msg.sent_at.strftime('%b %d, %Y %H:%M') }}
+              </span>
+            </div>
+            <div class="message-body">{{ msg.message_body }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-chat-square-dots fs-1 opacity-50 d-block mb-2"></i>
+          <p>No messages yet – say hello!</p>
+        </div>
+      {% endif %}
+      <div id="bottom"></div>
+    </div>
+
+    {# Post form #}
+    {% if in_channel %}
+    <div class="post-form border-top bg-white px-4 py-3 flex-shrink-0">
+      <form method="POST"
+            action="{{ url_for('channels.post_message', channel_id=channel.channel_id) }}"
+            class="d-flex gap-2">
+        <input type="text" name="message" class="form-control"
+               placeholder="Message #{{ channel.name }}…"
+               autocomplete="off" autofocus required maxlength="4000" />
+        <button type="submit" class="btn btn-primary px-4">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </form>
+    </div>
+    {% elif not in_channel and channel.channel_type == 'public' %}
+    <div class="post-form border-top bg-light px-4 py-3 text-center text-muted flex-shrink-0">
+      <form method="POST"
+            action="{{ url_for('channels.join_channel', channel_id=channel.channel_id) }}">
+        <i class="bi bi-info-circle me-1"></i>
+        Join this channel to post messages.
+        <button class="btn btn-success btn-sm ms-2">
+          <i class="bi bi-plus-circle me-1"></i>Join
+        </button>
+      </form>
+    </div>
+    {% elif has_invite %}
+    <div class="post-form border-top bg-light px-4 py-3 text-center text-muted flex-shrink-0">
+      <i class="bi bi-envelope me-1"></i>
+      You have a pending invitation to this channel.
+      <a href="{{ url_for('invitations.list_invitations') }}" class="btn btn-sm btn-primary ms-2">
+        View Invitations
+      </a>
+    </div>
+    {% else %}
+    <div class="post-form border-top bg-light px-4 py-3 text-center text-muted flex-shrink-0">
+      <i class="bi bi-lock me-1"></i> This is a private channel. You need an invitation to participate.
+    </div>
+    {% endif %}
+
+  </main>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Auto-scroll to bottom on page load
+  const msgArea = document.getElementById('messages');
+  if (msgArea) msgArea.scrollTop = msgArea.scrollHeight;
+</script>
+{% endblock %}
