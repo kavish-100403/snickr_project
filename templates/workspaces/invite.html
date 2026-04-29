@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Invite to {{ workspace.name }} – snickr{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-5 col-md-7">
+
+    <div class="d-flex align-items-center mb-4 gap-2">
+      <a href="{{ url_for('workspaces.workspace_detail', workspace_id=workspace.workspace_id) }}"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h4 class="mb-0 fw-bold">
+        Invite to <span class="text-primary">{{ workspace.name }}</span>
+      </h4>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <p class="text-muted small mb-3">
+          Enter the <strong>username</strong> of the person you want to invite.
+          They will receive a pending invitation they can accept or decline.
+        </p>
+        <form method="POST"
+              action="{{ url_for('workspaces.invite_to_workspace', workspace_id=workspace.workspace_id) }}"
+              novalidate>
+          <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-at"></i></span>
+            <input type="text" class="form-control form-control-lg" name="username"
+                   placeholder="username" autofocus required />
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-send-fill me-1"></i> Send invite
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

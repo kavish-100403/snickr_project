@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Create Channel – snickr{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-5 col-md-8">
+
+    <div class="d-flex align-items-center mb-4 gap-2">
+      <a href="{{ url_for('workspaces.workspace_detail', workspace_id=workspace.workspace_id) }}"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h4 class="mb-0 fw-bold">
+        New channel in <span class="text-primary">{{ workspace.name }}</span>
+      </h4>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <form method="POST"
+              action="{{ url_for('channels.create_channel', workspace_id=workspace.workspace_id) }}"
+              novalidate>
+
+          <div class="mb-3">
+            <label for="name" class="form-label fw-semibold">
+              Channel name <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <input type="text" class="form-control form-control-lg" id="name"
+                     name="name" value="{{ name or '' }}"
+                     placeholder="e.g. announcements" autofocus required maxlength="150" />
+            </div>
+            <div class="form-text">Lowercase letters, numbers, and hyphens only.</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Channel type <span class="text-danger">*</span></label>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="channel_type" id="type_public"
+                       value="public" {% if channel_type != 'private' %}checked{% endif %} />
+                <label class="btn btn-outline-success w-100 text-start p-3" for="type_public">
+                  <i class="bi bi-hash d-block fs-4 mb-1"></i>
+                  <strong>Public</strong>
+                  <div class="small text-muted mt-1">Anyone in the workspace can join</div>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="channel_type" id="type_private"
+                       value="private" {% if channel_type == 'private' %}checked{% endif %} />
+                <label class="btn btn-outline-warning w-100 text-start p-3" for="type_private">
+                  <i class="bi bi-lock-fill d-block fs-4 mb-1"></i>
+                  <strong>Private</strong>
+                  <div class="small text-muted mt-1">Only invited members can see this</div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+              <i class="bi bi-plus-circle-fill me-1"></i> Create Channel
+            </button>
+            <a href="{{ url_for('workspaces.workspace_detail', workspace_id=workspace.workspace_id) }}"
+               class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

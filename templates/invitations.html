@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Invitations – snickr{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-2">
+  <a href="{{ url_for('workspaces.dashboard') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h3 class="mb-0 fw-bold">
+    <i class="bi bi-bell-fill text-primary me-1"></i> Pending Invitations
+    {% if ws_invitations|length + ch_invitations|length > 0 %}
+    <span class="badge bg-danger ms-1">{{ ws_invitations|length + ch_invitations|length }}</span>
+    {% endif %}
+  </h3>
+</div>
+
+{# ── Workspace invitations ── #}
+<h5 class="fw-semibold mb-3 text-muted">
+  <i class="bi bi-building me-1"></i> Workspace Invitations
+</h5>
+
+{% if ws_invitations %}
+<div class="row row-cols-1 row-cols-md-2 g-3 mb-5">
+  {% for inv in ws_invitations %}
+  <div class="col">
+    <div class="card shadow-sm border-0 border-start border-4 border-primary">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-1">
+          <i class="bi bi-building text-primary me-1"></i>{{ inv.workspace_name }}
+        </h5>
+        <p class="text-muted small mb-1">
+          {% if inv.workspace_description %}{{ inv.workspace_description }}{% else %}No description.{% endif %}
+        </p>
+        <p class="small text-muted mb-3">
+          <i class="bi bi-person me-1"></i>Invited by <strong>{{ inv.invited_by_username }}</strong>
+          &middot; {{ inv.invited_at.strftime('%b %d, %Y') }}
+        </p>
+        <div class="d-flex gap-2">
+          <form method="POST"
+                action="{{ url_for('invitations.accept_workspace_invite', invite_id=inv.workspace_invite_id) }}">
+            <button type="submit" class="btn btn-success btn-sm px-3">
+              <i class="bi bi-check-circle-fill me-1"></i> Accept
+            </button>
+          </form>
+          <form method="POST"
+                action="{{ url_for('invitations.decline_workspace_invite', invite_id=inv.workspace_invite_id) }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm px-3">
+              <i class="bi bi-x-circle me-1"></i> Decline
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-light border mb-5">
+  <i class="bi bi-inbox me-1 text-muted"></i> No pending workspace invitations.
+</div>
+{% endif %}
+
+{# ── Channel invitations ── #}
+<h5 class="fw-semibold mb-3 text-muted">
+  <i class="bi bi-chat-square-dots me-1"></i> Channel Invitations
+</h5>
+
+{% if ch_invitations %}
+<div class="row row-cols-1 row-cols-md-2 g-3">
+  {% for inv in ch_invitations %}
+  <div class="col">
+    <div class="card shadow-sm border-0 border-start border-4
+                {% if inv.channel_type == 'private' %}border-warning{% else %}border-success{% endif %}">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-1">
+          {% if inv.channel_type == 'private' %}
+          <i class="bi bi-lock-fill text-warning me-1"></i>
+          {% else %}
+          <i class="bi bi-hash text-success me-1"></i>
+          {% endif %}
+          {{ inv.channel_name }}
+        </h5>
+        <p class="small text-muted mb-1">
+          in workspace <strong>{{ inv.workspace_name }}</strong>
+          &middot; <span class="badge channel-type-{{ inv.channel_type }}">{{ inv.channel_type }}</span>
+        </p>
+        <p class="small text-muted mb-3">
+          <i class="bi bi-person me-1"></i>Invited by <strong>{{ inv.invited_by_username }}</strong>
+          &middot; {{ inv.invited_at.strftime('%b %d, %Y') }}
+        </p>
+        <div class="d-flex gap-2">
+          <form method="POST"
+                action="{{ url_for('invitations.accept_channel_invite', invite_id=inv.channel_invite_id) }}">
+            <button type="submit" class="btn btn-success btn-sm px-3">
+              <i class="bi bi-check-circle-fill me-1"></i> Accept
+            </button>
+          </form>
+          <form method="POST"
+                action="{{ url_for('invitations.decline_channel_invite', invite_id=inv.channel_invite_id) }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm px-3">
+              <i class="bi bi-x-circle me-1"></i> Decline
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-light border">
+  <i class="bi bi-inbox me-1 text-muted"></i> No pending channel invitations.
+</div>
+{% endif %}
+
+{% endblock %}

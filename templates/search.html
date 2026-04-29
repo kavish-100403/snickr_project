@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Search – snickr{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h3 class="fw-bold mb-1">
+    <i class="bi bi-search text-primary me-1"></i> Search Messages
+  </h3>
+  <p class="text-muted small mb-0">
+    Only messages in channels and workspaces you belong to are returned.
+  </p>
+</div>
+
+{# ── Search form ── #}
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body p-4">
+    <form method="GET" action="{{ url_for('search.search') }}" class="row g-3 align-items-end">
+      <div class="col-md-6">
+        <label for="q" class="form-label fw-semibold">Keyword</label>
+        <div class="input-group input-group-lg">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="q" name="q"
+                 value="{{ keyword }}" placeholder="Search messages…"
+                 autofocus required />
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label for="workspace_id" class="form-label fw-semibold">
+          Workspace <span class="text-muted fw-normal">(optional)</span>
+        </label>
+        <select class="form-select form-select-lg" id="workspace_id" name="workspace_id">
+          <option value="">All workspaces</option>
+          {% for ws in user_workspaces %}
+          <option value="{{ ws.workspace_id }}"
+                  {% if workspace_filter == ws.workspace_id %}selected{% endif %}>
+            {{ ws.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary btn-lg w-100">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Results ── #}
+{% if keyword %}
+  {% if results %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="mb-0 text-muted">
+      <strong>{{ results|length }}</strong> result{{ 's' if results|length != 1 }}
+      for "<span class="text-dark">{{ keyword }}</span>"
+      {% if workspace_filter %}
+        {% for ws in user_workspaces if ws.workspace_id == workspace_filter %}
+        in <strong>{{ ws.name }}</strong>
+        {% endfor %}
+      {% endif %}
+    </h6>
+  </div>
+
+  <div class="list-group shadow-sm">
+    {% for r in results %}
+    <div class="list-group-item list-group-item-action px-4 py-3 border-0 mb-1 rounded">
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <div class="d-flex align-items-center gap-2">
+          <span class="avatar-sm" style="background:{{ r.sender_username | avatar_color }}">
+            {{ (r.sender_nickname or r.sender_username)[0].upper() }}
+          </span>
+          <div>
+            <span class="fw-semibold">{{ r.sender_nickname or r.sender_username }}</span>
+            <span class="text-muted small ms-2">
+              in
+              <a href="{{ url_for('workspaces.workspace_detail', workspace_id=r.workspace_id) }}"
+                 class="text-muted">{{ r.workspace_name }}</a>
+              &rsaquo;
+              <a href="{{ url_for('channels.channel_detail', channel_id=r.channel_id) }}"
+                 class="text-decoration-none">
+                {% if r.channel_type == 'public' %}
+                <i class="bi bi-hash"></i>
+                {% else %}
+                <i class="bi bi-lock-fill"></i>
+                {% endif %}
+                {{ r.channel_name }}
+              </a>
+            </span>
+          </div>
+        </div>
+        <small class="text-muted text-nowrap ms-3">
+          {{ r.sent_at.strftime('%b %d, %Y %H:%M') }}
+        </small>
+      </div>
+      <div class="ms-5 ps-2 message-body search-excerpt">{{ r.message_body }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-search fs-1 opacity-50 d-block mb-3"></i>
+    <h5>No results found</h5>
+    <p class="small">Try a different keyword or workspace filter.</p>
+  </div>
+  {% endif %}
+
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-search fs-1 opacity-50 d-block mb-3"></i>
+  <p class="small">Enter a keyword above to search across your accessible messages.</p>
+</div>
+{% endif %}
+
+{% endblock %}

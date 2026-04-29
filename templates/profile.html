@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Profile – snickr{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-md-9">
+
+    <h3 class="fw-bold mb-4">
+      <i class="bi bi-person-circle text-primary me-1"></i> Your Profile
+    </h3>
+
+    {# ── Stats row ── #}
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fs-2 fw-bold text-primary">{{ ws_count }}</div>
+          <div class="small text-muted">Workspaces</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fs-2 fw-bold text-success">{{ ch_count }}</div>
+          <div class="small text-muted">Channels</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fs-2 fw-bold text-info">{{ msg_count }}</div>
+          <div class="small text-muted">Messages</div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Account info ── #}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white border-bottom fw-semibold py-3">
+        <i class="bi bi-info-circle me-1 text-primary"></i> Account Info
+      </div>
+      <div class="card-body p-4">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">Username</dt>
+          <dd class="col-sm-8 fw-semibold">@{{ user.username }}</dd>
+
+          <dt class="col-sm-4 text-muted">Email</dt>
+          <dd class="col-sm-8">{{ user.email }}</dd>
+
+          <dt class="col-sm-4 text-muted">Member since</dt>
+          <dd class="col-sm-8">{{ user.created_at.strftime('%B %d, %Y') }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {# ── Update display name ── #}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white border-bottom fw-semibold py-3">
+        <i class="bi bi-pencil me-1 text-primary"></i> Display Name
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('profile.view_profile') }}">
+          <input type="hidden" name="action" value="update_nickname" />
+          <div class="row g-3 align-items-end">
+            <div class="col-sm-8">
+              <label for="nickname" class="form-label fw-semibold">Display name</label>
+              <input type="text" class="form-control" id="nickname" name="nickname"
+                     value="{{ user.nickname or '' }}"
+                     placeholder="Your display name" maxlength="100" />
+              <div class="form-text">Leave blank to use your username.</div>
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-primary w-100">Save</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {# ── Change password ── #}
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white border-bottom fw-semibold py-3">
+        <i class="bi bi-shield-lock me-1 text-primary"></i> Change Password
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('profile.view_profile') }}" novalidate>
+          <input type="hidden" name="action" value="change_password" />
+
+          <div class="mb-3">
+            <label for="current_password" class="form-label fw-semibold">Current password</label>
+            <input type="password" class="form-control" id="current_password"
+                   name="current_password" required autocomplete="current-password" />
+          </div>
+          <div class="mb-3">
+            <label for="new_password" class="form-label fw-semibold">New password</label>
+            <input type="password" class="form-control" id="new_password"
+                   name="new_password" required autocomplete="new-password" />
+          </div>
+          <div class="mb-4">
+            <label for="confirm_password" class="form-label fw-semibold">Confirm new password</label>
+            <input type="password" class="form-control" id="confirm_password"
+                   name="confirm_password" required autocomplete="new-password" />
+          </div>
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-key-fill me-1"></i> Update password
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
