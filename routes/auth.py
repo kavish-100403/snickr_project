@@ -2,8 +2,8 @@
 routes/auth.py – Registration, login, and logout.
 
 Security notes:
-  - Passwords are stored as Werkzeug pbkdf2:sha256 hashes (never plain text).
-  - All SQL uses parameterized queries (%s placeholders).
+  - Passwords are stored as Werkzeug pbkdf2:sha256 hashes.
+  - All SQL uses parameterized queries.
   - Jinja2 auto-escapes all template output, preventing XSS.
 """
 
