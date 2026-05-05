@@ -1,11 +1,3 @@
-"""
-app.py – Flask application factory.
-
-Registers all route blueprints and adds a context processor that injects
-pending_count (total pending invitations for the logged-in user) into every
-template so the navbar badge always shows the right number.
-"""
-
 import os
 import psycopg2.extras
 from flask import Flask, session, request

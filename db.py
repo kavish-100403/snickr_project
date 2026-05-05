@@ -1,5 +1,5 @@
 """
-db.py – Database connection layer.
+db.py:  Database connection layer.
 All queries throughout the app go through get_connection().
 Using psycopg2 with RealDictCursor so rows behave like dicts.
 """
