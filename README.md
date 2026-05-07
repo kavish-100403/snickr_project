@@ -104,6 +104,7 @@ Visit **http://localhost:5000** in your browser.
 | Workspace detail + channels     | `/workspaces/<id>`                      |
 | Invite user to workspace        | `/workspaces/<id>/invite`               |
 | Create channel (public/private) | `/workspaces/<id>/channels/create`      |
+| Create direct message channel   | `/workspaces/<id>/direct/create`        |
 | View channel + messages         | `/channels/<id>`                        |
 | Join public channel             | `/channels/<id>/join`  (POST)           |
 | Post message                    | `/channels/<id>/post`  (POST)           |
@@ -150,7 +151,7 @@ snickr_project/
 │   ├── dashboard.html
 │   ├── auth/           login.html, register.html
 │   ├── workspaces/     create, detail, invite
-│   ├── channels/       create, detail (chat UI), invite
+│   ├── channels/       create, detail (chat UI), invite, direct
 │   ├── invitations.html
 │   ├── search.html
 │   └── profile.html
