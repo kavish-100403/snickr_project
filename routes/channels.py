@@ -406,3 +406,164 @@ def invite_to_channel(channel_id):
         if cur:
             cur.close()
         conn.close()
+
+
+# ── Create direct channel ────────────────────────────────────────────────────
+
+@channels_bp.route("/workspaces/<int:workspace_id>/direct/create",
+                   methods=["GET", "POST"])
+@login_required
+def create_direct_channel(workspace_id):
+    """Start a direct message channel with another workspace member.
+
+    Rules:
+      - Both users must be workspace members.
+      - If a direct channel between the two users already exists in this
+        workspace, redirect to it instead of creating a duplicate.
+      - Channel name is built as  <userA>-<userB>  (alphabetical order).
+    """
+    user_id = session["user_id"]
+    conn = get_connection()
+    cur = None
+    try:
+        cur = dict_cursor(conn)
+
+        # Caller must be a workspace member
+        cur.execute(
+            "SELECT 1 FROM WorkspaceMembership "
+            "WHERE workspace_id = %s AND user_id = %s",
+            (workspace_id, user_id),
+        )
+        if not cur.fetchone():
+            flash("You are not a member of this workspace.", "danger")
+            return redirect(url_for("workspaces.dashboard"))
+
+        cur.execute(
+            "SELECT workspace_id, name FROM Workspace WHERE workspace_id = %s",
+            (workspace_id,),
+        )
+        workspace = cur.fetchone()
+        if not workspace:
+            flash("Workspace not found.", "danger")
+            return redirect(url_for("workspaces.dashboard"))
+
+        # Load all other workspace members for the dropdown
+        cur.execute(
+            """SELECT u.user_id, u.username, u.nickname
+               FROM Users u
+               JOIN WorkspaceMembership wm ON u.user_id = wm.user_id
+               WHERE wm.workspace_id = %s AND u.user_id != %s
+               ORDER BY u.username""",
+            (workspace_id, user_id),
+        )
+        other_members = cur.fetchall()
+
+        if request.method == "POST":
+            target_user_id = request.form.get("target_user_id", type=int)
+
+            if not target_user_id:
+                flash("Please select a user to message.", "danger")
+                return render_template(
+                    "channels/direct.html",
+                    workspace=workspace,
+                    other_members=other_members,
+                )
+
+            if target_user_id == user_id:
+                flash("You cannot send a direct message to yourself.", "warning")
+                return render_template(
+                    "channels/direct.html",
+                    workspace=workspace,
+                    other_members=other_members,
+                )
+
+            # Target must be a workspace member
+            cur.execute(
+                "SELECT 1 FROM WorkspaceMembership "
+                "WHERE workspace_id = %s AND user_id = %s",
+                (workspace_id, target_user_id),
+            )
+            if not cur.fetchone():
+                flash("That user is not a member of this workspace.", "danger")
+                return render_template(
+                    "channels/direct.html",
+                    workspace=workspace,
+                    other_members=other_members,
+                )
+
+            # Check whether a direct channel between the two users already exists
+            cur.execute(
+                """SELECT c.channel_id
+                   FROM Channel c
+                   JOIN ChannelMembership cm1
+                        ON c.channel_id = cm1.channel_id AND cm1.user_id = %s
+                   JOIN ChannelMembership cm2
+                        ON c.channel_id = cm2.channel_id AND cm2.user_id = %s
+                   WHERE c.workspace_id = %s
+                     AND c.channel_type = 'direct'
+                   LIMIT 1""",
+                (user_id, target_user_id, workspace_id),
+            )
+            existing = cur.fetchone()
+            if existing:
+                flash("A direct channel with this user already exists.", "info")
+                return redirect(
+                    url_for("channels.channel_detail",
+                            channel_id=existing["channel_id"])
+                )
+
+            # Build a deterministic channel name from both usernames (alphabetical)
+            cur.execute(
+                "SELECT username FROM Users WHERE user_id IN (%s, %s)",
+                (user_id, target_user_id),
+            )
+            usernames = sorted([row["username"] for row in cur.fetchall()])
+            channel_name = f"{usernames[0]}-{usernames[1]}"
+
+            # If that name is taken (different pair), append a short suffix
+            cur.execute(
+                "SELECT 1 FROM Channel "
+                "WHERE workspace_id = %s AND name = %s",
+                (workspace_id, channel_name),
+            )
+            if cur.fetchone():
+                channel_name = f"{channel_name}-dm"
+
+            # Create channel + add both members in one transaction
+            cur.execute(
+                "INSERT INTO Channel (workspace_id, name, channel_type, created_by) "
+                "VALUES (%s, %s, 'direct', %s) RETURNING channel_id",
+                (workspace_id, channel_name, user_id),
+            )
+            channel_id = cur.fetchone()["channel_id"]
+
+            cur.execute(
+                "INSERT INTO ChannelMembership (channel_id, user_id) VALUES (%s, %s)",
+                (channel_id, user_id),
+            )
+            cur.execute(
+                "INSERT INTO ChannelMembership (channel_id, user_id) VALUES (%s, %s)",
+                (channel_id, target_user_id),
+            )
+            conn.commit()
+            flash(f"Direct channel '{channel_name}' created!", "success")
+            return redirect(
+                url_for("channels.channel_detail", channel_id=channel_id)
+            )
+
+        return render_template(
+            "channels/direct.html",
+            workspace=workspace,
+            other_members=other_members,
+        )
+
+    except Exception:
+        conn.rollback()
+        flash("Failed to create direct channel.", "danger")
+        return redirect(
+            url_for("workspaces.workspace_detail", workspace_id=workspace_id)
+        )
+    finally:
+        if cur:
+            cur.close()
+        conn.close()
