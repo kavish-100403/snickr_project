@@ -10,8 +10,20 @@ Security notes:
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_connection, dict_cursor
+from urllib.parse import urljoin, urlparse
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def _safe_next_url(target):
+    """Return a same-origin redirect target, or None for an unsafe URL."""
+    if not target:
+        return None
+    host = urlparse(request.host_url)
+    destination = urlparse(urljoin(request.host_url, target))
+    if destination.scheme in ("http", "https") and destination.netloc == host.netloc:
+        return target
+    return None
 
 
 @auth_bp.route("/")
@@ -59,7 +71,10 @@ def login():
             session["email"] = user["email"]
             session["nickname"] = user["nickname"]
             flash(f"Welcome back, {user['nickname'] or user['username']}!", "success")
-            return redirect(request.args.get("next") or url_for("workspaces.dashboard"))
+            return redirect(
+                _safe_next_url(request.args.get("next"))
+                or url_for("workspaces.dashboard")
+            )
 
         flash("Invalid username or password.", "danger")
 

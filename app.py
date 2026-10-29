@@ -1,5 +1,4 @@
 import os
-import psycopg2.extras
 from flask import Flask, session, request
 from dotenv import load_dotenv
 from db import get_connection, dict_cursor
@@ -9,11 +8,15 @@ import logging
 load_dotenv()
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
-    app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
+    )
+    if test_config:
+        app.config.update(test_config)
+
     logging.basicConfig(
-        filename="docs/app_demo.log",
         level=logging.INFO,
         format="%(asctime)s %(levelname)s: %(message)s",
     )

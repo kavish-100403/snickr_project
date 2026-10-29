@@ -14,7 +14,7 @@ A Slack-like web application built with Python Flask and PostgreSQL.
 | DB driver  | psycopg2-binary                        |
 | Templating | Jinja2 (auto-escaping enabled)          |
 | UI         | Bootstrap 5.3 + Bootstrap Icons        |
-| Security   | Werkzeug password hashing (pbkdf2)      |
+| Security   | Werkzeug salted password hashing        |
 
 ---
 
@@ -81,6 +81,49 @@ Visit **http://localhost:5000** in your browser.
 
 ---
 
+## Run with Docker
+
+Docker Compose starts the Flask application behind Gunicorn and a PostgreSQL
+16 database:
+
+```bash
+docker compose up --build
+```
+
+Open **http://localhost:8000**. The database schema is created automatically
+the first time the PostgreSQL volume starts. Register a user through the UI;
+the demo accounts below are added only by `python seed_db.py`.
+
+Set `SECRET_KEY` and database credentials in a local `.env` before using this
+setup outside local development. To discard the local database and initialize
+a fresh schema:
+
+```bash
+docker compose down -v
+```
+
+---
+
+## Tests
+
+Install the development dependencies and run the suite:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+The tests use Flask's test client and replace the database connection boundary
+with in-memory fakes. They therefore run without PostgreSQL and cover the
+application factory, route protection, form validation, login/session behavior,
+resource cleanup, and safe post-login redirects. Database schema behavior and
+full PostgreSQL query integration remain manual/integration-test concerns.
+
+GitHub Actions runs the syntax check and test suite on Python 3.10, 3.11, and
+3.12 for pushes and pull requests.
+
+---
+
 ## Demo accounts
 
 | Username | Password   | Role                        |
@@ -121,10 +164,28 @@ Visit **http://localhost:5000** in your browser.
 - **SQL injection** – Every query uses psycopg2 parameterized placeholders (`%s`).  
   User input is never concatenated into SQL strings.
 - **XSS** – Jinja2 auto-escaping is on by default for all `.html` templates.
-- **Password storage** – Werkzeug `generate_password_hash` (pbkdf2:sha256 + salt).
-- **Access control** – Every route checks session membership before querying data.
+- **Password storage** – Werkzeug `generate_password_hash` with a salted,
+  one-way password hash.
+- **Access control** – Protected routes require a signed-in session and enforce
+  workspace/channel membership where applicable.
+- **Redirect safety** – Post-login redirects are restricted to the same origin.
 - **Transactions** – Accept-invite flows execute status update + membership insert  
   atomically (single `conn.commit()`), preventing partial updates under concurrency.
+
+---
+
+## Architecture
+
+`create_app()` builds the Flask application and registers six route blueprints.
+The route layer handles validation, authorization, and transaction boundaries.
+`db.py` is the single PostgreSQL connection boundary; route queries use
+`RealDictCursor` so templates receive mapping-like rows. Jinja templates render
+server-side HTML, and signed Flask sessions hold the authenticated user's
+identity. PostgreSQL owns relational constraints and persistent data.
+
+The application opens a short-lived database connection per request handler and
+closes it in a `finally` block. This simple design suits the project's scope;
+there is no ORM, migration framework, background worker, or connection pool.
 
 ---
 
@@ -136,9 +197,20 @@ snickr_project/
 ├── db.py               Database connection helper
 ├── utils.py            login_required decorator
 ├── seed_db.py          Drop + recreate schema, insert demo data
-├── schema.sql          DDL with indexes (Project 2 revised version)
+├── schema.sql          Application database DDL
 ├── requirements.txt
+├── requirements-dev.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── .env.example
+├── .github/workflows/
+│   └── ci.yml
+├── tests/
+│   ├── conftest.py
+│   ├── test_app.py
+│   ├── test_auth.py
+│   └── test_workspaces.py
 ├── routes/
 │   ├── auth.py         register / login / logout
 │   ├── workspaces.py   dashboard, create/view workspace, invite
@@ -161,6 +233,4 @@ snickr_project/
 │   ├── schema.sql
 │   ├── sample_data.sql
 │   └── queries.sql
-└── docs/
-    └── PROJECT_NOTES.md
 ```
